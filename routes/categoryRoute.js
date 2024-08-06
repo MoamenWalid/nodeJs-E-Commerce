@@ -1,5 +1,5 @@
 const express = require('express');
-const { createCategory, getAllCategories, getSingleCategory, updateCategory } = require('../controllers/categoryController');
+const { createCategory, getAllCategories, getSingleCategory, updateCategory, deleteCategory } = require('../controllers/categoryController');
 
 const routerCategory = express.Router();
 
@@ -11,6 +11,7 @@ routerCategory.route('/')
 routerCategory.route('/:id')
   .get(getSingleCategory)
   .patch(updateCategory)
+  .delete(deleteCategory)
 
 module.exports = {
   routerCategory,

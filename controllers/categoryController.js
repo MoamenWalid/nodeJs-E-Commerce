@@ -67,18 +67,43 @@ exports.getSingleCategory = asyncHandler(async (req, res) => {
 exports.updateCategory = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
+
+  // Check if category already exist
+  const existingCategory = await Category.findOne({ name: name.trim() });
+  if (existingCategory) return res.status(400).json({ message: "category already exist" });
+
   const { error } = validateCateogry(req.body);
   if (error) return res.status(400).json({ message: error.details[0].message });
-  
-  // Check if name already exist
-  // TODO - LIST
 
   const category = await Category.findById(id);
   if (!category) return res.status(404).json({ message: "category not found" });
 
   const updateCategory = await Category.findByIdAndUpdate(id, {
-    $set: name
+    $set: {
+      name,
+      slug: slugify(name)
+    }
   }, { new: true })
 
   res.status(200).json({ data: updateCategory });
+})
+
+
+/**-----------------------------------------
+ * @desc    delete category
+ * @router  /api/v1/categories/:id
+ * @method  DELETE
+ * @access  private (only admin)
+------------------------------------------*/
+
+exports.deleteCategory = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  // Check if category is found or not
+  const foundCategory = await Category.findById(id);
+  if (!foundCategory) return res.status(404).json({ message: "category not found" });
+
+  // Delete category
+  const deleted = await Category.findByIdAndDelete(id);
+  if (deleted) return res.status(200).json({ message: "category has been deleted successfully" });
 })
