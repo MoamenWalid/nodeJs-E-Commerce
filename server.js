@@ -32,8 +32,20 @@ app.all('*', (req, res, next) => {
 // Error handling
 app.use(errorHandling);
 
+let server;
+
+// Events => listen => calback(err)
+process.on('unhandledRejection', err => {
+  console.log(`UnhandledRejection Errors: ${ err }`);
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    })
+  }
+})
+
 // Running the server
 const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
+server = app.listen(PORT, () => {
   console.log(`App running in ${ process.env.NODE_ENV } on port ${ PORT }`);
 })

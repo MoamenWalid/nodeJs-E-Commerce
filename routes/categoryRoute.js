@@ -1,5 +1,6 @@
 const express = require('express');
 const { createCategory, getAllCategories, getSingleCategory, updateCategory, deleteCategory } = require('../controllers/categoryController');
+const { validateObjectId } = require('../middlewares/validateObjectId');
 
 const routerCategory = express.Router();
 
@@ -9,9 +10,9 @@ routerCategory.route('/')
   .get(getAllCategories)
 
 routerCategory.route('/:id')
-  .get(getSingleCategory)
-  .patch(updateCategory)
-  .delete(deleteCategory)
+  .get(validateObjectId ,getSingleCategory)
+  .patch(validateObjectId ,updateCategory)
+  .delete(validateObjectId ,deleteCategory)
 
 module.exports = {
   routerCategory,
