@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const slugify = require('slugify');
 const { Category, validateCateogry } = require("../models/categoryModels");
+const { ApiError } = require('../middlewares/apiError');
 
 /**-----------------------------------------
  * @desc    Create category
@@ -9,19 +10,19 @@ const { Category, validateCateogry } = require("../models/categoryModels");
  * @access  private (only admin)
 ------------------------------------------*/
 
-exports.createCategory = asyncHandler(async (req, res) => {
+exports.createCategory = asyncHandler(async (req, res, next) => {
   const { name } = req.body;
   const { error } = validateCateogry(req.body);
 
-  if (error) return res.status(400).json({ message: error.details[0].message });
+  if (error) return next(new ApiError(error.details[0].message, 400));
 
   // Check if category already exist
   const existingCategory = await Category.findOne({ name: name.trim() });
-  if (existingCategory) return res.status(400).json({ message: "category already exist" });
+  if (existingCategory) return next(new ApiError("category already exist", 400));
 
   // Create a new category
   const newCategory = await Category.create({ name, slug: slugify(name) });
-  res.status(201).json({ data: newCategory });
+  res.status(201).json({ data: newCategory, message: "category created successfully" });
 })
 
 
@@ -36,8 +37,8 @@ exports.getAllCategories = asyncHandler(async (req, res) => {
   const { page, limit } = req.query;
   const skip = (page - 1) * limit;
 
-  const allCategories = await Category.find({  }).skip(skip).limit(limit || 5);
-  res.status(200).json({ results: allCategories.length, page, data: allCategories });
+  const allCategories = await Category.find({}).skip(skip).limit(limit || 5);
+  return res.status(200).json({ results: allCategories.length, page, data: allCategories });
 })
 
 
@@ -48,11 +49,11 @@ exports.getAllCategories = asyncHandler(async (req, res) => {
  * @access  public
 ------------------------------------------*/
 
-exports.getSingleCategory = asyncHandler(async (req, res) => {
+exports.getSingleCategory = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
   const singleCategory = await Category.findById(id);
-  if (!singleCategory) res.status(404).json({ message: "category not found" });
+  if (!singleCategory) return next(new ApiError('category not found', 404));
   res.status(200).json({ data: singleCategory });
 })
 
@@ -68,15 +69,15 @@ exports.updateCategory = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
 
-  // Check if category already exist
-  const existingCategory = await Category.findOne({ name: name.trim() });
-  if (existingCategory) return res.status(400).json({ message: "category already exist" });
-
   const { error } = validateCateogry(req.body);
-  if (error) return res.status(400).json({ message: error.details[0].message });
+  if (error) return next(new ApiError(error.details[0].message, 400));
 
   const category = await Category.findById(id);
-  if (!category) return res.status(404).json({ message: "category not found" });
+  if (!category) return next(new ApiError('category not found', 404));
+
+  // Check if category already exist
+  const existingCategory = await Category.findOne({ name: name.trim() });
+  if (existingCategory) return next(new ApiError("category already exist", 400));
 
   const updateCategory = await Category.findByIdAndUpdate(id, {
     $set: {
@@ -85,7 +86,7 @@ exports.updateCategory = asyncHandler(async (req, res) => {
     }
   }, { new: true })
 
-  res.status(200).json({ data: updateCategory });
+  res.status(200).json({ data: updateCategory, message: 'category updated successfully' });
 })
 
 
@@ -101,7 +102,7 @@ exports.deleteCategory = asyncHandler(async (req, res) => {
 
   // Check if category is found or not
   const foundCategory = await Category.findById(id);
-  if (!foundCategory) return res.status(404).json({ message: "category not found" });
+  if (!foundCategory) return next(new ApiError('category not found', 404));
 
   // Delete category
   const deleted = await Category.findByIdAndDelete(id);

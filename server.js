@@ -5,6 +5,8 @@ const morgan = require('morgan');
 const { connectToDB } = require('./config/connectToDB');
 const { createCategory } = require('./controllers/categoryController');
 const { routerCategory } = require('./routes/categoryRoute');
+const { ApiError } = require('./middlewares/apiError');
+const { errorHandling } = require('./middlewares/error');
 
 // Connect with DB
 connectToDB();
@@ -21,6 +23,14 @@ if (process.env.NODE_ENV == 'development') {
 
 // Routes
 app.use('/api/v1/categories', routerCategory);
+
+// All routes not found
+app.all('*', (req, res, next) => {
+  next(new ApiError(`Cant find this route: ${ req.originalUrl }`, 404));
+})
+
+// Error handling
+app.use(errorHandling);
 
 // Running the server
 const PORT = process.env.PORT || 8000;
