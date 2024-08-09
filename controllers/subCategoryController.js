@@ -81,33 +81,34 @@ exports.updateSubCategory = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const { name, categoryId } = req.body;
 
-  // Validation of subCategory ID
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new ApiError('invalid subCategory ID', 400));
+  // Validation
+  if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+    return next(new ApiError('category invalid ID', 400));
   }
 
-  // Validation of category ID
-  if (categoryId && !mongoose.Types.ObjectId.isValid(categoryId)) {
-    return next(new ApiError('invalid category ID', 400));
+  if (!await SubCategory.findById(id)) {
+    return next(new ApiError('subCategory not found', 400));
   }
 
   const { error } = validateSubCategory(req.body);
   if (error) return next(new ApiError(error.details[0].message, 400));
 
-  // Check if category exists
-  const existingCategory = await Category.findById(categoryId);
-  if (!existingCategory) return next(new ApiError("Category not found", 404));
+  // Check if category and if subCategory already exists
+  const [existingCategory, existingSubCategory] = await Promise.all([
+    Category.findById(categoryId),
+    SubCategory.findOne({ name })
+  ])
 
-   // Update subCategory
+  if (!existingCategory) return next(new ApiError("category not found", 404));
+  if (existingSubCategory) return next(new ApiError("subcategory already exists", 409));
+
   const updateSubCategory = await SubCategory.findByIdAndUpdate(id, {
-    name,
-    slug: slugify(name),
-    categoryId
+    $set: {
+      name,
+      slug: slugify(name),
+      categoryId
+    }
   }, { new: true })
-
-  if (!updateSubCategory) {
-    return next(new ApiError("SubCategory not found", 404));
-  }
 
   res.status(200).json({ data: updateSubCategory, message: 'subcategory updated successfully' });
 })
