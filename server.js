@@ -3,8 +3,9 @@ const dotenv = require('dotenv');
 dotenv.config({ path: 'config.env' });
 const morgan = require('morgan');
 const { connectToDB } = require('./config/connectToDB');
-const { createCategory } = require('./controllers/categoryController');
+
 const { routerCategory } = require('./routes/categoryRoute');
+const { routerSubCategory } = require('./routes/subCategoryRoute');
 const { ApiError } = require('./middlewares/apiError');
 const { errorHandling } = require('./middlewares/error');
 
@@ -23,18 +24,18 @@ if (process.env.NODE_ENV == 'development') {
 
 // Routes
 app.use('/api/v1/categories', routerCategory);
+app.use('/api/v1/subcategories', routerSubCategory);
 
 // All routes not found
 app.all('*', (req, res, next) => {
   next(new ApiError(`Cant find this route: ${ req.originalUrl }`, 404));
 })
 
-// Error handling
+// Error handling middlewar
 app.use(errorHandling);
 
 let server;
 
-// Events => listen => calback(err)
 process.on('unhandledRejection', err => {
   console.log(`UnhandledRejection Errors: ${ err }`);
   if (server) {

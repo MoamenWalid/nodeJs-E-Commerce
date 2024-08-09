@@ -16,9 +16,9 @@ exports.createCategory = asyncHandler(async (req, res, next) => {
 
   if (error) return next(new ApiError(error.details[0].message, 400));
 
-  // Check if category already exist
+  // Check if category already exists
   const existingCategory = await Category.findOne({ name: name.trim() });
-  if (existingCategory) return next(new ApiError("category already exist", 400));
+  if (existingCategory) return next(new ApiError("category already exists", 409));
 
   // Create a new category
   const newCategory = await Category.create({ name, slug: slugify(name) });
@@ -34,10 +34,10 @@ exports.createCategory = asyncHandler(async (req, res, next) => {
 ------------------------------------------*/
 
 exports.getAllCategories = asyncHandler(async (req, res) => {
-  const { page, limit } = req.query;
+  const { page, limit = 5 } = req.query;
   const skip = (page - 1) * limit;
 
-  const allCategories = await Category.find({}).skip(skip).limit(limit || 5);
+  const allCategories = await Category.find({}).skip(skip).limit(limit);
   return res.status(200).json({ results: allCategories.length, page, data: allCategories });
 })
 
@@ -52,8 +52,10 @@ exports.getAllCategories = asyncHandler(async (req, res) => {
 exports.getSingleCategory = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
+  // Check if category found or not
   const singleCategory = await Category.findById(id);
   if (!singleCategory) return next(new ApiError('category not found', 404));
+
   res.status(200).json({ data: singleCategory });
 })
 
@@ -75,9 +77,9 @@ exports.updateCategory = asyncHandler(async (req, res) => {
   const category = await Category.findById(id);
   if (!category) return next(new ApiError('category not found', 404));
 
-  // Check if category already exist
+  // Check if category already exists
   const existingCategory = await Category.findOne({ name: name.trim() });
-  if (existingCategory) return next(new ApiError("category already exist", 400));
+  if (existingCategory) return next(new ApiError("category already exists", 409));
 
   const updateCategory = await Category.findByIdAndUpdate(id, {
     $set: {
@@ -97,7 +99,7 @@ exports.updateCategory = asyncHandler(async (req, res) => {
  * @access  private (only admin)
 ------------------------------------------*/
 
-exports.deleteCategory = asyncHandler(async (req, res) => {
+exports.deleteCategory = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
   // Check if category is found or not

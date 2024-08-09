@@ -1,9 +1,10 @@
-const { default: mongoose } = require("mongoose")
+const { default: mongoose } = require("mongoose");
+const { ApiError } = require("./apiError");
 
 exports.validateObjectId = (req, res, next) => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: "invalid id" });
+    return next(new ApiError('invalid id', 400));
   }
 
   next();
