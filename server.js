@@ -2,6 +2,7 @@ import express from 'express';
 import 'dotenv/config';
 import morgan from 'morgan';
 import connectToDB from './config/connectToDB.js';
+import { categoryRoute } from './routes/categoryRoute.js';
 
 // Connect to DB
 connectToDB();
@@ -18,6 +19,7 @@ if (process.env.NODE_ENV == 'development') {
 app.use(express.json());
 
 // routes
+app.use('/api/categories', categoryRoute);
 app.all('*', (req, res) => {
   console.log(`Not found this route | ${ req.route }`);
   
