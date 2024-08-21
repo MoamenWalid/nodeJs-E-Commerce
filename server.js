@@ -1,52 +1,30 @@
-const express = require('express');
-const dotenv = require('dotenv');
-dotenv.config({ path: 'config.env' });
-const morgan = require('morgan');
-const { connectToDB } = require('./config/connectToDB');
+import express from 'express';
+import 'dotenv/config';
+import morgan from 'morgan';
+import connectToDB from './config/connectToDB.js';
 
-const { routerCategory } = require('./routes/categoryRoute');
-const { routerSubCategory } = require('./routes/subCategoryRoute');
-const { ApiError } = require('./middlewares/apiError');
-const { errorHandling } = require('./middlewares/error');
-
-// Connect with DB
+// Connect to DB
 connectToDB();
 
 const app = express();
 
-// Middlewares
-app.use(express.json());
-
+/*** Middlewares ***/
+// Morgan
 if (process.env.NODE_ENV == 'development') {
-  console.log(`mode: ${ process.env.NODE_ENV }`);
   app.use(morgan('dev'));
 }
 
-// Routes
-app.use('/api/v1/categories', routerCategory);
-app.use('/api/v1/subcategories', routerSubCategory);
+// Do parse to (req body)
+app.use(express.json());
 
-// All routes not found
-app.all('*', (req, res, next) => {
-  next(new ApiError(`Cant find this route: ${ req.originalUrl }`, 404));
+// routes
+app.all('*', (req, res) => {
+  console.log(`Not found this route | ${ req.route }`);
+  
 })
 
-// Error handling middlewar
-app.use(errorHandling);
-
-let server;
-
-process.on('unhandledRejection', err => {
-  console.log(`UnhandledRejection Errors: ${ err }`);
-  if (server) {
-    server.close(() => {
-      process.exit(1);
-    })
-  }
-})
-
-// Running the server
+// Run server
 const PORT = process.env.PORT || 8000;
-server = app.listen(PORT, () => {
-  console.log(`App running in ${ process.env.NODE_ENV } on port ${ PORT }`);
+app.listen(PORT, () => {
+  console.log(`App Running on port ${ PORT }`);
 })
