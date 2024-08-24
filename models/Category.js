@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 
 const name = {
   type: String,
-  required: [true, "Category required"],
+  required: [true, "Category name required"],
   trim: true,
-  unique: [true, "Category must be unique"],
+  unique: [true, "Category name must be unique"],
   minlength: [3, "Too short category name"],
   maxlength: [32, "Too long category name"]
 }
