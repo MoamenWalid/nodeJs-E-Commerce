@@ -6,6 +6,7 @@ import { categoryRoute } from './routes/categoryRoute.js';
 import { ApiError } from './utils/ApiError.js';
 import { globalError } from './middlewares/globalError.js';
 import { subCategoryRoute } from './routes/subCategoryRoute.js';
+import { brandRoute } from './routes/brandRoute.js';
 
 // Connect to DB
 connectToDB();
@@ -24,6 +25,7 @@ app.use(express.json());
 // routes
 app.use('/api/categories', categoryRoute);
 app.use('/api/subcategories', subCategoryRoute);
+app.use('/api/brands', brandRoute);
 app.all('*', (req, _, next) => {
   next(new ApiError(`Not found this route ${ req.originalUrl }`, 400));
 })

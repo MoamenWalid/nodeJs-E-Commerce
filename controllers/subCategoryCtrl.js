@@ -34,6 +34,7 @@ const createSubCategoryCtrl = asyncHandler(async(req, res, next) => {
 })
 
 
+/** @nested_route /api/categories/:categoryId/subcategories */
 /**-----------------------------------------
  * @desc    Get all subCategories
  * @router  /api/subcategories
@@ -45,7 +46,10 @@ const getAllSubCategories = asyncHandler(async (req, res) => {
   const { page = 1, limit = 5 } = req.query;
   const skip = (page - 1) * limit;
 
-  const subCategories = await SubCategory.find({}).skip(skip).limit(limit).populate('category', 'name -_id');
+  const filterObject = {};
+  if (req.params.categoryId) filterObject.category = req.params.categoryId;  
+
+  const subCategories = await SubCategory.find(filterObject).skip(skip).limit(limit).populate('category', 'name');
   res.status(200).json({ results: subCategories.length, page: +page, subCategories });
 })
 

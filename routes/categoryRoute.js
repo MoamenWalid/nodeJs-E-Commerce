@@ -1,8 +1,10 @@
 import express from 'express';
 import { createCategoryCtrl, deleteSingleCategory, getAllCategories, getSingleCategory, updateSingleCategory } from '../controllers/categoryCtrl.js';
 import { createCategoryValidator, deleteCategoryValidator, getCategoryValidator, updateCategoryValidator } from '../utils/validators/categoryValidator.js';
+import { subCategoryRoute } from './subCategoryRoute.js';
 
 const categoryRoute = express.Router();
+categoryRoute.use('/:categoryId/subcategories', subCategoryRoute);
 
 // /api/categories
 categoryRoute.route('/')
